@@ -1,0 +1,25 @@
+{
+  "name": "run-skill",
+  "version": "1.0.0",
+  "description": "Portable run session planning and execution skill",
+  "author": {
+    "name": "Mostly Serious",
+    "url": "https://mostlyserious.io"
+  },
+  "repository": "https://github.com/MostlySerious/run-skill",
+  "license": "UNLICENSED",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Run Skill",
+    "shortDescription": "Plan and run multi-step project sessions",
+    "longDescription": "Portable run session planning and execution for Codex and Claude Code.",
+    "developerName": "Mostly Serious",
+    "category": "Productivity",
+    "capabilities": ["Interactive", "Write"],
+    "websiteURL": "https://github.com/MostlySerious/run-skill",
+    "defaultPrompt": [
+      "Use /run to plan a multi-step project in this repo."
+    ],
+    "brandColor": "#1F4D3D"
+  }
+}
