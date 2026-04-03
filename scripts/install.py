@@ -20,6 +20,24 @@ def ensure_installable(path: Path, force: bool, noun: str) -> None:
         raise SystemExit(f"Refusing to overwrite existing {noun}: {path}")
 
 
+def is_same_symlink(dest: Path, src: Path) -> bool:
+    if not dest.is_symlink():
+        return False
+    try:
+        return dest.resolve() == src.resolve()
+    except FileNotFoundError:
+        return False
+
+
+def is_same_file_content(path: Path, content: str) -> bool:
+    if not path.exists() or path.is_symlink() or not path.is_file():
+        return False
+    try:
+        return path.read_text() == content
+    except OSError:
+        return False
+
+
 def install_path(src: Path, dest: Path, mode: str, force: bool) -> None:
     if dest.exists() or dest.is_symlink():
         if not force:
@@ -67,25 +85,33 @@ def main() -> None:
         claude_root = home / ".claude"
         installs.append((run_skill, claude_root / "skills" / "run"))
 
-    for _, dest in installs:
+    for src, dest in installs:
+        if args.mode == "symlink" and is_same_symlink(dest, src):
+            continue
         ensure_installable(dest, args.force, "path")
 
     command_target = None
+    command_body = None
     if args.host in {"claude", "both"}:
         command_target = home / ".claude" / "commands" / "run.md"
-        ensure_installable(command_target, args.force, "file")
+        command_body = f"Read and follow `{home / '.claude' / 'skills' / 'run' / 'SKILL.md'}`.\n"
+        if not (command_target and is_same_file_content(command_target, command_body)):
+            ensure_installable(command_target, args.force, "file")
 
     runner_target = home / ".local" / "bin" / "run-skill"
-    ensure_installable(runner_target, args.force, "path")
+    if not is_same_symlink(runner_target, runner_script):
+        ensure_installable(runner_target, args.force, "path")
 
     for src, dest in installs:
+        if args.mode == "symlink" and is_same_symlink(dest, src):
+            continue
         install_path(src, dest, args.mode, args.force)
 
-    if command_target is not None:
-        command_body = f"Read and follow `{home / '.claude' / 'skills' / 'run' / 'SKILL.md'}`.\n"
+    if command_target is not None and command_body is not None and not is_same_file_content(command_target, command_body):
         write_file(command_target, command_body, args.force)
 
-    install_path(runner_script, runner_target, "symlink", args.force)
+    if not is_same_symlink(runner_target, runner_script):
+        install_path(runner_script, runner_target, "symlink", args.force)
     runner_target.chmod(0o755)
 
     print("Installed run-skill.")
