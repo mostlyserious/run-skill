@@ -7,8 +7,8 @@ description: |
 ## Resume & Adjust
 
 Load shared controls:
-- [[../../_shared/nodes/interaction-gates.md]]
-- [[../../_shared/nodes/output-discipline.md]]
+- [[../_shared/nodes/interaction-gates.md]]
+- [[../_shared/nodes/output-discipline.md]]
 - [[safety.md]]
 
 Reference: [[blueprint-schema.md]]

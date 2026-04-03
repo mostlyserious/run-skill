@@ -15,6 +15,11 @@ def remove_existing(path: Path) -> None:
         shutil.rmtree(path)
 
 
+def ensure_installable(path: Path, force: bool, noun: str) -> None:
+    if (path.exists() or path.is_symlink()) and not force:
+        raise SystemExit(f"Refusing to overwrite existing {noun}: {path}")
+
+
 def install_path(src: Path, dest: Path, mode: str, force: bool) -> None:
     if dest.exists() or dest.is_symlink():
         if not force:
@@ -32,8 +37,10 @@ def install_path(src: Path, dest: Path, mode: str, force: bool) -> None:
 
 
 def write_file(path: Path, content: str, force: bool) -> None:
-    if path.exists() and not force:
-        raise SystemExit(f"Refusing to overwrite existing file: {path}")
+    if path.exists() or path.is_symlink():
+        if not force:
+            raise SystemExit(f"Refusing to overwrite existing file: {path}")
+        remove_existing(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content)
 
@@ -47,7 +54,6 @@ def main() -> None:
 
     repo_root = Path(__file__).resolve().parent.parent
     run_skill = repo_root / "skills" / "run"
-    shared_skill = repo_root / "skills" / "_shared"
     runner_script = repo_root / "skills" / "run" / "scripts" / "run.sh"
 
     home = Path.home()
@@ -55,38 +61,36 @@ def main() -> None:
 
     if args.host in {"codex", "both"}:
         codex_root = Path(os.environ.get("CODEX_HOME", home / ".codex")) / "skills"
-        installs.extend(
-            [
-                (run_skill, codex_root / "run"),
-                (shared_skill, codex_root / "_shared"),
-            ]
-        )
+        installs.append((run_skill, codex_root / "run"))
 
     if args.host in {"claude", "both"}:
         claude_root = home / ".claude"
-        installs.extend(
-            [
-                (run_skill, claude_root / "skills" / "run"),
-                (shared_skill, claude_root / "skills" / "_shared"),
-            ]
-        )
+        installs.append((run_skill, claude_root / "skills" / "run"))
+
+    for _, dest in installs:
+        ensure_installable(dest, args.force, "path")
+
+    command_target = None
+    if args.host in {"claude", "both"}:
+        command_target = home / ".claude" / "commands" / "run.md"
+        ensure_installable(command_target, args.force, "file")
+
+    runner_target = home / ".local" / "bin" / "run-skill"
+    ensure_installable(runner_target, args.force, "path")
 
     for src, dest in installs:
         install_path(src, dest, args.mode, args.force)
 
-    if args.host in {"claude", "both"}:
-        command_target = home / ".claude" / "commands" / "run.md"
+    if command_target is not None:
         command_body = f"Read and follow `{home / '.claude' / 'skills' / 'run' / 'SKILL.md'}`.\n"
         write_file(command_target, command_body, args.force)
 
-    bin_dir = home / ".local" / "bin"
-    bin_dir.mkdir(parents=True, exist_ok=True)
-    runner_target = bin_dir / "run-skill"
     install_path(runner_script, runner_target, "symlink", args.force)
     runner_target.chmod(0o755)
 
     print("Installed run-skill.")
     print(f"Runner: {runner_target}")
+    bin_dir = runner_target.parent
     if str(bin_dir) not in os.environ.get("PATH", "").split(":"):
         print(f"PATH note: add {bin_dir} to your PATH if run-skill is not found.")
     print("Restart Claude Code or Codex to pick up the new skill cleanly.")

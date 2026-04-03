@@ -8,8 +8,8 @@ description: |
 ## Status & Follow
 
 Load shared controls:
-- [[../../_shared/nodes/interaction-gates.md]]
-- [[../../_shared/nodes/output-discipline.md]]
+- [[../_shared/nodes/interaction-gates.md]]
+- [[../_shared/nodes/output-discipline.md]]
 
 Reference: [[blueprint-schema.md]]
 

@@ -63,8 +63,8 @@ The skill does not auto-launch the work. It stops at a launch-ready package unle
 ## Core Rules
 
 1. Load shared controls first:
-   - [[../_shared/nodes/interaction-gates.md]]
-   - [[../_shared/nodes/output-discipline.md]]
+   - [[_shared/nodes/interaction-gates.md]]
+   - [[_shared/nodes/output-discipline.md]]
    - [[nodes/safety.md]]
 2. Determine mode from the command argument. No argument means `session`.
 3. Use [[nodes/blueprint-schema.md]] as the source of truth for `blueprint.json`.
@@ -173,5 +173,5 @@ If the user is new, explain the workflow in those terms instead of assuming prio
 
 ## Shared Dependencies
 
-- [[../_shared/nodes/interaction-gates.md]]
-- [[../_shared/nodes/output-discipline.md]]
+- [[_shared/nodes/interaction-gates.md]]
+- [[_shared/nodes/output-discipline.md]]

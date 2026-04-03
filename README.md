@@ -104,6 +104,8 @@ That installs:
 - a Claude Code command wrapper at `~/.claude/commands/run.md`
 - a `run-skill` shim in `~/.local/bin`
 
+The installer only manages `run`-owned paths. It does not claim or overwrite a host-level `~/.codex/skills/_shared` or `~/.claude/skills/_shared`.
+
 If `~/.local/bin` is not already on your `PATH`, add it:
 
 ```bash
@@ -257,8 +259,8 @@ This lets you build runs that depend on shared team skills without hardcoding a 
 
 ```text
 skills/
-  _shared/
   run/
+    _shared/
 commands/
 scripts/
 ```
