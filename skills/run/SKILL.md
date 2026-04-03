@@ -2,11 +2,10 @@
 name: run
 version: 1.0.0
 description: |
-  Project execution partner. Plan a substantial piece of work through a
-  structured session workshop, then run it with a portable bash runner that
-  routes each step to the right AI CLI tool or installed skill. Use for
-  high-trust planning, run status checks, and resume/adjust flows that should
-  work in any repo.
+  Plan and run larger projects through a guided session, a structured
+  blueprint, and a portable runner. Use when the work is too large or fuzzy
+  for a single prompt and needs clear steps, tool routing, status checks, and
+  resume support.
 argument-hint: "[session | status | resume]"
 allowed-tools:
   - Read
@@ -18,9 +17,19 @@ allowed-tools:
   - AskUserQuestion
 ---
 
-# /run - Project Execution Partner
+# /run - Plan, Launch, and Supervise Bigger Work
 
-Plan ambitious work step by step, then execute it with the right AI tool or installed skill per step. The workshop builds the package; the runner does the work. Steps can invoke raw CLI tools (`claude-code`, `codex`, `gemini`) or installed skills through `skill:<name>`.
+`run` is for work that should be treated like a small project, not a one-off prompt.
+
+Use it when you want to:
+
+- turn a rough goal into an executable plan
+- break the work into steps with dependencies
+- assign the right tool to each step
+- launch the work in a controlled way
+- inspect progress and recover from blockers
+
+The skill handles the planning layer. The `run-skill` CLI handles execution and supervision.
 
 ---
 
@@ -36,33 +45,48 @@ Default mode: `session`.
 
 ---
 
-## Core Routing Rules
+## What To Expect
 
-1. Load shared gates first:
+When you start with `/run` or `$run`, the skill will usually:
+
+1. clarify the goal, scope, and success criteria
+2. propose a run folder, usually under `./runs/<project-slug>/`
+3. write a human-readable planning record in `session.md`
+4. lock the structured execution contract into `blueprint.json`
+5. initialize `progress.md`
+6. hand you the exact commands to validate and launch the run
+
+The skill does not auto-launch the work. It stops at a launch-ready package unless you choose to run it separately.
+
+---
+
+## Core Rules
+
+1. Load shared controls first:
    - [[../_shared/nodes/interaction-gates.md]]
    - [[../_shared/nodes/output-discipline.md]]
    - [[nodes/safety.md]]
 2. Determine mode from the command argument. No argument means `session`.
-3. All modes reference [[nodes/blueprint-schema.md]] for the `blueprint.json` contract.
-4. Return the requested deliverable without auto-launching the run.
+3. Use [[nodes/blueprint-schema.md]] as the source of truth for `blueprint.json`.
+4. Keep the output user-facing and practical. Assume the person using this skill is seeing it for the first time unless the conversation says otherwise.
 
 ---
 
-## Runner Handoff
+## Runner Commands
 
 After `session` or `resume` writes or updates `blueprint.json`, present these commands:
 
-**Validate the package first**
+**Validate the package**
 ```bash
 run-skill --validate <path-to-blueprint.json>
 ```
 
-**One-shot supervision summary**
+**See a one-shot status summary**
 ```bash
 run-skill --status <path-to-blueprint.json>
 ```
 
-**Live follow surface**
+**Follow the run live**
 ```bash
 run-skill --follow <path-to-blueprint.json>
 ```
@@ -123,6 +147,19 @@ Model defaults:
 - Codex: `gpt-5.4` with `xhigh` reasoning effort
 
 Override those in `blueprint.json` with `defaults.models.*` or step-level fields.
+
+---
+
+## Mental Model
+
+Think of the system in four pieces:
+
+- `session.md`: the human planning record
+- `blueprint.json`: the execution contract
+- `progress.md`: the running log
+- `run-skill`: the operator that executes and supervises the plan
+
+If the user is new, explain the workflow in those terms instead of assuming prior knowledge.
 
 ---
 

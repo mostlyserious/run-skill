@@ -6,10 +6,12 @@ description: |
 
 ## Blueprint Schema
 
-All `/run` artifacts are written to a directory chosen during planning. The core file is `blueprint.json`.
+Every `run` project is written to its own run directory. The core file in that directory is `blueprint.json`.
 
 Typical home:
 - `./runs/<project>/`
+
+If you are new to the system, think of `blueprint.json` as the machine-readable version of the plan. The skill helps generate it. The runner reads it to execute the work.
 
 ### Top-Level Fields
 

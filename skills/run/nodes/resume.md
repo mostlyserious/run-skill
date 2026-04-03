@@ -1,7 +1,7 @@
 ---
 description: |
-  Review a stalled or in-progress project run, make adjustments, and re-emit
-  the runner command to continue execution.
+  Review a stalled or in-progress project, make adjustments, and re-emit the
+  runner command to continue execution.
 ---
 
 ## Resume & Adjust
@@ -18,6 +18,8 @@ Reference: [[blueprint-schema.md]]
 ## Inputs
 
 - Optional: path to `blueprint.json` (same locate logic as [[status.md]])
+
+Assume the user may not know how `run` packages work yet. Briefly explain what is blocked and what changing the blueprint will do before making edits.
 
 ## Execution
 
@@ -74,6 +76,7 @@ Reference: [[blueprint-schema.md]]
 
    Use the launch-mode ladder as the preferred handoff. Treat `--supervised` as legacy compatibility.
    If the run stopped in `Incomplete / Blocked`, describe the blocker in the same terms the shared status surface uses before proposing a resume path.
+   Recommend the next command in plain English instead of only pasting the command block.
 
 6. **Log to `progress.md`**:
    ```text

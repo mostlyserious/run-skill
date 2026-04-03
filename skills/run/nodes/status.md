@@ -1,8 +1,8 @@
 ---
 description: |
-  Shared status and live-follow surface for a running or completed project run.
-  Uses the runner's artifact-backed shell entrypoint instead of building a
-  separate dashboard in the node.
+  Status and live-follow surface for a running or completed project. Uses the
+  runner's artifact-backed shell entrypoint instead of building a separate
+  dashboard in the node.
 ---
 
 ## Status & Follow
@@ -19,6 +19,8 @@ Reference: [[blueprint-schema.md]]
 
 - Optional: path to `blueprint.json` or a run directory containing it
 - Optional intent: one-shot status summary or live follow
+
+Assume the user may be seeing these artifacts for the first time. Explain the current state in plain language before leaning on internal file names.
 
 ## Execution
 
@@ -55,10 +57,11 @@ Reference: [[blueprint-schema.md]]
 4. **Stay read-only**:
    - Do not edit the blueprint or run artifacts from `status`.
    - If the user asks what to do next, answer from the rendered state rather than inventing a second status model.
+   - If technical file names appear in the output, translate them into user-facing meaning.
 
 ---
 
 ## Output Contract
 
-- The runner's shared status or follow output, relayed to the user
+- The runner's shared status or follow output, relayed in user-facing language
 - No file modifications

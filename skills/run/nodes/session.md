@@ -1,6 +1,6 @@
 ---
 description: |
-  High-trust planning mode for larger or fuzzier runs. Builds a live
+  Guided planning mode for larger or fuzzier projects. Builds a live
   session.md while shaping the work, then locks into blueprint.json,
   progress.md, and a launch-ready package.
 ---
@@ -18,7 +18,7 @@ Reference: [[blueprint-schema.md]]
 
 ## Purpose
 
-Use `session` when the run needs more than a quick blueprint pass.
+Use `session` when the project needs more structure than a direct prompt.
 
 This mode is for projects that are:
 - higher leverage
@@ -156,6 +156,8 @@ Run each stage in order. Pause for input anywhere uncertainty materially changes
 
 Create it early and keep it clean. Update stale language to the latest truth rather than appending correction logs.
 
+Write the session as if a new user may read it later without any outside context. Avoid references to a private workflow, home workspace, or prior conventions the reader would not know.
+
 ### Required Sections
 
 - `# Session - <project name>`
@@ -199,6 +201,8 @@ Before the run starts, present three layers:
 - major exclusions
 - biggest risks or assumptions
 
+Write this layer for a general reader who is encountering the run for the first time. It should make sense without any outside context.
+
 ### 2. Execution Layer
 
 - full step checklist
@@ -220,10 +224,9 @@ run-skill --launch-mode adaptive <path>/blueprint.json
 
 # Expansion: adaptive behavior plus bounded step creation during execution
 run-skill --launch-mode expansion <path>/blueprint.json
-
-# Legacy supervised compatibility
-run-skill --supervised <path>/blueprint.json
 ```
+
+Close with a plain-language explanation of which launch mode you recommend and why.
 
 Use the `standard` / `adaptive` / `expansion` ladder as the primary handoff. Mention `--supervised` only as legacy compatibility.
 

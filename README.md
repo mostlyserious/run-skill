@@ -1,43 +1,116 @@
 # run-skill
 
-Portable `run` session planning and execution for Claude Code and Codex.
+`run` is a planning-and-execution skill for bigger pieces of work.
 
-This repo pulls the reusable part of a high-trust `/run` workflow into a standalone package that works in any repo. It keeps the `run session` workshop, the `blueprint.json` contract, and the portable runner surface for validate, launch, status, and resume.
+You use it when a task is too large, fuzzy, or high-stakes for a single prompt. Instead of throwing one giant instruction at an AI tool, `run` helps you shape the work into a clear execution package, then hands that package to a portable runner that can execute, monitor, and resume it.
 
-What is included:
-- `$run` / `$run session` planning flow
-- `$run status`
-- `$run resume`
-- portable runner command: `run-skill`
-- generic run artifacts: `session.md`, `blueprint.json`, `progress.md`, `run-state.json`, `events.jsonl`, `completion-summary.txt`, `completion-recap.md`
+The result is a repeatable workflow:
 
-What is intentionally not included:
-- overnight workflows
-- local briefing publishing
-- SMS notifications
-- workspace-specific operating assumptions
+1. Plan the work in a guided session.
+2. Lock the plan into a structured package.
+3. Launch it with the runner.
+4. Check progress, inspect blockers, and resume when needed.
+
+This repo is designed to work as a standalone product. If you can install a skill in Claude Code or Codex and run a shell command, you can use it.
+
+## What It Does
+
+`run` gives you three user-facing modes:
+
+- `run session`: turn a goal into a launch-ready run package
+- `run status`: inspect a run that is active, blocked, or complete
+- `run resume`: adjust a run and continue it after a blocker or pause
+
+It also ships a companion CLI:
+
+- `run-skill --validate`: verify a package before launch
+- `run-skill --launch-mode ...`: execute the package
+- `run-skill --status`: print a one-shot status summary
+- `run-skill --follow`: stay attached to live progress
+- `run-skill --watch`: open a light supervision loop
+- `run-skill --dry-run`: inspect what would run without executing it
+
+## Who It Is For
+
+`run` is useful when you want an AI tool to handle a project with multiple steps, dependencies, and checkpoints.
+
+Good fits:
+
+- research and synthesis projects
+- implementation plans that require several passes
+- content or document production with review stages
+- repo work that needs discovery, edits, validation, and recap
+- anything you want to supervise without micromanaging every prompt
+
+Bad fits:
+
+- tiny one-shot tasks
+- casual brainstorming
+- work where a normal direct prompt is already enough
+
+## How It Works
+
+The workflow has two layers.
+
+### 1. Planning layer
+
+Inside Claude Code or Codex, you start with:
+
+```text
+/run
+```
+
+or:
+
+```text
+$run
+```
+
+The skill walks through the project with you, asks for clarification where it matters, and writes a run package to a folder like:
+
+```text
+./runs/<project-slug>/
+```
+
+That folder typically contains:
+
+- `session.md`: the human-readable planning record
+- `blueprint.json`: the structured execution contract
+- `progress.md`: the durable progress log
+
+### 2. Execution layer
+
+Once the package is approved, you use the runner:
+
+```bash
+run-skill --validate ./runs/<project>/blueprint.json
+run-skill --launch-mode standard ./runs/<project>/blueprint.json
+```
+
+The runner executes each step in order, records progress, and writes machine-readable and human-readable artifacts as it goes.
 
 ## Install
 
-Clone the repo somewhere stable, then run:
+Clone this repo somewhere stable, then run:
 
 ```bash
 python3 scripts/install.py --host both
 ```
 
 That installs:
-- Codex skills into `~/.codex/skills/run` and `~/.codex/skills/_shared`
-- Claude Code skills into `~/.claude/skills/run` and `~/.claude/skills/_shared`
-- Claude Code command wrapper into `~/.claude/commands/run.md`
-- runner shim into `~/.local/bin/run-skill`
 
-If `~/.local/bin` is not on your `PATH`, add it:
+- the `run` skill into `~/.codex/skills/` for Codex
+- the `run` skill into `~/.claude/skills/` for Claude Code
+- a Claude Code command wrapper at `~/.claude/commands/run.md`
+- a `run-skill` shim in `~/.local/bin`
+
+If `~/.local/bin` is not already on your `PATH`, add it:
 
 ```bash
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-Install options:
+Other install variants:
 
 ```bash
 python3 scripts/install.py --host codex
@@ -46,29 +119,124 @@ python3 scripts/install.py --host both --mode copy
 python3 scripts/install.py --host both --force
 ```
 
-Restart Claude Code or Codex after install so the new skill is picked up cleanly.
+Restart Claude Code or Codex after install so the skill is discovered cleanly.
 
-## Use
+## First Use
 
-Inside any repo:
+Start in any project directory where you want the work to happen.
 
-- Codex: `$run`
-- Claude Code: `/run`
+In Codex:
 
-The session flow will usually propose a run folder under `./runs/<project-slug>/`.
+```text
+$run
+```
 
-When the package is locked, use the runner:
+In Claude Code:
+
+```text
+/run
+```
+
+The skill will help you define:
+
+- what the project is
+- what success looks like
+- what is out of scope
+- what steps need to happen
+- which tool should handle each step
+- which launch mode fits the work
+
+When the package is ready, it will hand you the exact commands to validate and launch it.
+
+## Launch Modes
+
+`run-skill` supports three main launch modes.
+
+- `standard`: execute the approved plan and stop on failure or blocker
+- `adaptive`: keep the same scope, but allow bounded recovery and retries
+- `expansion`: adaptive behavior plus bounded step creation during execution
+
+Most teams should start with `standard` unless the work clearly benefits from controlled autonomy.
+
+## Run Artifacts
+
+Each run lives in its own folder. Beyond the core planning files, the runner may create:
+
+- `launch.json`
+- `run-state.json`
+- `events.jsonl`
+- `blockers.md`
+- `blockers.jsonl`
+- `completion-summary.txt`
+- `completion-recap.md`
+- `handoff/`
+- `logs/steps/...`
+
+You do not need to read all of these manually. In normal use:
+
+- `session.md` is the planning record
+- `progress.md` is the narrative log
+- `run-skill --status` is the fastest way to inspect state
+- `completion-recap.md` is the best first read after a run finishes
+
+## Checking Progress
+
+To inspect a run:
 
 ```bash
-run-skill --validate ./runs/<project>/blueprint.json
-run-skill --launch-mode standard ./runs/<project>/blueprint.json
 run-skill --status ./runs/<project>/blueprint.json
+```
+
+To stay attached while it runs:
+
+```bash
 run-skill --follow ./runs/<project>/blueprint.json
 ```
 
-## Skill steps
+To watch the run with a lighter supervision surface:
 
-Blueprint steps can route to installed skills with:
+```bash
+run-skill --watch ./runs/<project>/blueprint.json
+```
+
+## Resuming a Run
+
+If a run stops, you can reopen it through the skill:
+
+```text
+/run resume
+```
+
+or:
+
+```text
+$run resume
+```
+
+That flow helps you review blockers, adjust the plan, update `blueprint.json`, and re-emit the next launch command.
+
+You can also resume from the CLI:
+
+```bash
+run-skill --resume-last
+```
+
+## Tool Routing
+
+Each step in a run can route to a specific execution tool.
+
+Built-in tool targets include:
+
+- `claude-code`
+- `codex`
+- `gemini`
+- `skill:<name>`
+
+That means a run can mix direct CLI execution and installed skills. For example, one step might use Codex for implementation, another might use Claude Code for synthesis, and another might invoke a separate installed skill.
+
+## Skill-Based Steps
+
+Blueprint steps can reference another installed skill like this:
 
 ```json
 {
@@ -76,13 +244,16 @@ Blueprint steps can route to installed skills with:
 }
 ```
 
-The runner looks for sibling skills in:
+The runner looks for skills in this order:
+
 1. this repo's bundled `skills/`
 2. extra roots from `RUN_SKILL_PATHS`
 3. `~/.codex/skills`
 4. `~/.claude/skills`
 
-## Repo layout
+This lets you build runs that depend on shared team skills without hardcoding a single workspace layout.
+
+## Repo Layout
 
 ```text
 skills/
@@ -92,4 +263,13 @@ commands/
 scripts/
 ```
 
-`commands/run.md` exists so Claude Code gets a plain `/run` entrypoint after install.
+## Mental Model
+
+If you are using `run` for the first time, think of it this way:
+
+- the skill is the planner
+- `blueprint.json` is the contract
+- the runner is the operator
+- the run folder is the project record
+
+You do not have to learn the full schema up front. Start with `/run` or `$run`, approve the package, and let the system generate the structure for you.
