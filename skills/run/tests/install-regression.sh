@@ -94,8 +94,28 @@ EOF
   pass "preflight prevents partial install"
 }
 
+test_install_is_idempotent_for_existing_run_paths() {
+  local home_dir stdout_path stderr_path
+  home_dir="${WORK_ROOT}/idempotent-home"
+  stdout_path="${WORK_ROOT}/idempotent.stdout"
+  stderr_path="${WORK_ROOT}/idempotent.stderr"
+
+  HOME="${home_dir}" python3 "${INSTALLER}" --host both >/dev/null 2>/dev/null
+  HOME="${home_dir}" python3 "${INSTALLER}" --host both >"${stdout_path}" 2>"${stderr_path}"
+
+  assert_exists "${home_dir}/.codex/skills/run/SKILL.md" "Codex run skill should still exist after reinstall"
+  assert_exists "${home_dir}/.claude/skills/run/SKILL.md" "Claude run skill should still exist after reinstall"
+  assert_exists "${home_dir}/.claude/commands/run.md" "Claude command wrapper should still exist after reinstall"
+  assert_exists "${home_dir}/.local/bin/run-skill" "runner shim should still exist after reinstall"
+  [[ -L "${home_dir}/.local/bin/run-skill" ]] || fail "runner shim should remain a symlink after reinstall"
+  assert_contains "${stdout_path}" "Installed run-skill." "reinstall should complete successfully"
+  [[ ! -s "${stderr_path}" ]] || fail "reinstall should not emit stderr"
+  pass "install is idempotent for existing run-owned paths"
+}
+
 test_install_preserves_host_shared
 test_preflight_blocks_partial_install
+test_install_is_idempotent_for_existing_run_paths
 
 note ""
 note "Passed: ${PASS_COUNT}"
