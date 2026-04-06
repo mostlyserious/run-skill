@@ -11,7 +11,7 @@ Every `run` project is written to its own run directory. The core file in that d
 Typical home:
 - `./runs/<project>/`
 
-If you are new to the system, think of `blueprint.json` as the machine-readable version of the plan. The skill helps generate it. The runner reads it to execute the work.
+If you are new to the system, think of `blueprint.json` as the machine-readable version of the plan. The `/run` planner helps generate it. The workflow runner reads it to execute the work.
 
 ### Top-Level Fields
 
@@ -112,9 +112,10 @@ Steps can invoke installed skills by using `skill:<name>` in the `tool` field. T
 
 Skill lookup order:
 1. bundled repo-local `skills/<name>/SKILL.md`
-2. extra roots from `RUN_SKILL_PATHS`
-3. `~/.codex/skills/<name>/SKILL.md`
-4. `~/.claude/skills/<name>/SKILL.md`
+2. extra roots from `RUN_WORKFLOW_PATHS`
+3. legacy extra roots from `RUN_SKILL_PATHS`
+4. `~/.codex/skills/<name>/SKILL.md`
+5. `~/.claude/skills/<name>/SKILL.md`
 
 ### Acceptance Execution Roots
 
@@ -142,8 +143,8 @@ These are created in the same directory as `blueprint.json`:
 Shared operator surface:
 
 ```bash
-run-skill --status <path-to-blueprint.json>
-run-skill --follow <path-to-blueprint.json>
+run-workflow --status <path-to-blueprint.json>
+run-workflow --follow <path-to-blueprint.json>
 ```
 
 The shared surface reads `run-state.json`, `events.jsonl`, `blockers.jsonl`, and step attempt logs first. For older run directories, it falls back to `progress.md` and `blockers.md`.

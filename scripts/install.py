@@ -64,14 +64,14 @@ def write_file(path: Path, content: str, force: bool) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Install run-skill for Codex and Claude Code.")
+    parser = argparse.ArgumentParser(description="Install run-workflow for Codex and Claude Code.")
     parser.add_argument("--host", choices=["codex", "claude", "both"], default="both")
     parser.add_argument("--mode", choices=["symlink", "copy"], default="symlink")
     parser.add_argument("--force", action="store_true")
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parent.parent
-    run_skill = repo_root / "skills" / "run"
+    planner_skill = repo_root / "skills" / "run"
     runner_script = repo_root / "skills" / "run" / "scripts" / "run.sh"
 
     home = Path.home()
@@ -79,11 +79,11 @@ def main() -> None:
 
     if args.host in {"codex", "both"}:
         codex_root = Path(os.environ.get("CODEX_HOME", home / ".codex")) / "skills"
-        installs.append((run_skill, codex_root / "run"))
+        installs.append((planner_skill, codex_root / "run"))
 
     if args.host in {"claude", "both"}:
         claude_root = home / ".claude"
-        installs.append((run_skill, claude_root / "skills" / "run"))
+        installs.append((planner_skill, claude_root / "skills" / "run"))
 
     for src, dest in installs:
         if args.mode == "symlink" and is_same_symlink(dest, src):
@@ -98,9 +98,13 @@ def main() -> None:
         if not (command_target and is_same_file_content(command_target, command_body)):
             ensure_installable(command_target, args.force, "file")
 
-    runner_target = home / ".local" / "bin" / "run-skill"
-    if not is_same_symlink(runner_target, runner_script):
-        ensure_installable(runner_target, args.force, "path")
+    runner_targets = [
+        home / ".local" / "bin" / "run-workflow",
+        home / ".local" / "bin" / "run-skill",
+    ]
+    for runner_target in runner_targets:
+        if not is_same_symlink(runner_target, runner_script):
+            ensure_installable(runner_target, args.force, "path")
 
     for src, dest in installs:
         if args.mode == "symlink" and is_same_symlink(dest, src):
@@ -110,16 +114,20 @@ def main() -> None:
     if command_target is not None and command_body is not None and not is_same_file_content(command_target, command_body):
         write_file(command_target, command_body, args.force)
 
-    if not is_same_symlink(runner_target, runner_script):
-        install_path(runner_script, runner_target, "symlink", args.force)
-    runner_target.chmod(0o755)
+    for runner_target in runner_targets:
+        if not is_same_symlink(runner_target, runner_script):
+            install_path(runner_script, runner_target, "symlink", args.force)
+        runner_target.chmod(0o755)
 
-    print("Installed run-skill.")
-    print(f"Runner: {runner_target}")
-    bin_dir = runner_target.parent
+    primary_runner = runner_targets[0]
+    compatibility_runner = runner_targets[1]
+    print("Installed run-workflow.")
+    print(f"Runner: {primary_runner}")
+    print(f"Compatibility alias: {compatibility_runner}")
+    bin_dir = primary_runner.parent
     if str(bin_dir) not in os.environ.get("PATH", "").split(":"):
-        print(f"PATH note: add {bin_dir} to your PATH if run-skill is not found.")
-    print("Restart Claude Code or Codex to pick up the new skill cleanly.")
+        print(f"PATH note: add {bin_dir} to your PATH if run-workflow is not found.")
+    print("Restart Claude Code or Codex to pick up the updated run planner cleanly.")
 
 
 if __name__ == "__main__":

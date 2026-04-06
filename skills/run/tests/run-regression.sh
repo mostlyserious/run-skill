@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 RUNNER="${REPO_ROOT}/skills/run/scripts/run.sh"
-WORK_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/run-skill-regression.XXXXXX")"
+WORK_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/run-workflow-regression.XXXXXX")"
 
 PASS_COUNT=0
 FAIL_COUNT=0
@@ -187,10 +187,10 @@ import sys
 
 dest = Path(sys.argv[1])
 data = {
-    "name": "portable-run-skill-step",
+    "name": "portable-run-workflow-skill-step",
     "goal": "Verify installed skill lookup.",
     "created": "2026-04-02T12:00:00Z",
-    "context": "Resolve a skill from RUN_SKILL_PATHS.",
+    "context": "Resolve a skill from RUN_WORKFLOW_PATHS.",
     "defaults": {
         "tool": "claude-code",
         "skill_runner": "claude-code"
@@ -209,14 +209,129 @@ data = {
 (dest / "blueprint.json").write_text(json.dumps(data, indent=2) + "\n")
 PY
 
-  RUN_SKILL_PATHS="${extra_root}" run_runner "$stub_dir" --launch-mode standard "${run_dir}/blueprint.json" >/dev/null
+  RUN_WORKFLOW_PATHS="${extra_root}" run_runner "$stub_dir" --launch-mode standard "${run_dir}/blueprint.json" >/dev/null
   assert_file_exists "${run_dir}/handoff/step-01.md" "skill-based run should produce handoff"
   pass "external skill resolution"
+}
+
+test_legacy_skill_path_alias() {
+  local stub_dir run_dir extra_root
+  stub_dir="${WORK_ROOT}/bin-legacy-skill-paths"
+  run_dir="${WORK_ROOT}/legacy-skill-paths/runs/demo"
+  extra_root="${WORK_ROOT}/legacy-extra-skills"
+  create_stub_bin "$stub_dir"
+  mkdir -p "${extra_root}/research-brief"
+  cat > "${extra_root}/research-brief/SKILL.md" <<'EOF'
+---
+name: research-brief
+description: Minimal test skill
+allowed-tools:
+  - Read
+  - Bash
+---
+
+# research-brief
+
+Do the work.
+EOF
+
+  mkdir -p "$run_dir"
+  python3 - "$run_dir" <<'PY'
+from pathlib import Path
+import json
+import sys
+
+dest = Path(sys.argv[1])
+data = {
+    "name": "portable-run-workflow-legacy-skill-path-alias",
+    "goal": "Verify legacy skill path alias lookup.",
+    "created": "2026-04-02T12:00:00Z",
+    "context": "Resolve a skill from legacy RUN_SKILL_PATHS.",
+    "defaults": {
+        "tool": "claude-code",
+        "skill_runner": "claude-code"
+    },
+    "steps": [
+        {
+            "id": "step-01",
+            "title": "Use external skill via legacy alias",
+            "detail": "Use the skill. RUNNER_STUB_SUCCESS",
+            "done_when": "The step is marked done.",
+            "tool": "skill:research-brief",
+            "status": "pending"
+        }
+    ]
+}
+(dest / "blueprint.json").write_text(json.dumps(data, indent=2) + "\n")
+PY
+
+  RUN_SKILL_PATHS="${extra_root}" run_runner "$stub_dir" --launch-mode standard "${run_dir}/blueprint.json" >/dev/null
+  assert_file_exists "${run_dir}/handoff/step-01.md" "legacy skill path alias should still produce handoff"
+  pass "legacy skill path alias"
+}
+
+test_workflow_skill_path_precedence() {
+  local stub_dir run_dir workflow_root legacy_root
+  stub_dir="${WORK_ROOT}/bin-workflow-path-precedence"
+  run_dir="${WORK_ROOT}/workflow-path-precedence/runs/demo"
+  workflow_root="${WORK_ROOT}/workflow-precedence-skills"
+  legacy_root="${WORK_ROOT}/legacy-precedence-skills"
+  create_stub_bin "$stub_dir"
+  mkdir -p "${workflow_root}/research-brief"
+  cat > "${workflow_root}/research-brief/SKILL.md" <<'EOF'
+---
+name: research-brief
+description: Minimal test skill
+allowed-tools:
+  - Read
+  - Bash
+---
+
+# research-brief
+
+Do the work.
+EOF
+
+  mkdir -p "$run_dir"
+  python3 - "$run_dir" <<'PY'
+from pathlib import Path
+import json
+import sys
+
+dest = Path(sys.argv[1])
+data = {
+    "name": "portable-run-workflow-path-precedence",
+    "goal": "Verify RUN_WORKFLOW_PATHS takes precedence over RUN_SKILL_PATHS.",
+    "created": "2026-04-02T12:00:00Z",
+    "context": "Resolve a skill from RUN_WORKFLOW_PATHS when both vars are set.",
+    "defaults": {
+        "tool": "claude-code",
+        "skill_runner": "claude-code"
+    },
+    "steps": [
+        {
+            "id": "step-01",
+            "title": "Use external skill via precedence rule",
+            "detail": "Use the skill. RUNNER_STUB_SUCCESS",
+            "done_when": "The step is marked done.",
+            "tool": "skill:research-brief",
+            "status": "pending"
+        }
+    ]
+}
+(dest / "blueprint.json").write_text(json.dumps(data, indent=2) + "\n")
+PY
+
+  RUN_WORKFLOW_PATHS="${workflow_root}" RUN_SKILL_PATHS="${legacy_root}" run_runner "$stub_dir" --launch-mode standard "${run_dir}/blueprint.json" >/dev/null
+  assert_file_exists "${run_dir}/handoff/step-01.md" "workflow skill path should win when both env vars are set"
+  pass "workflow skill path precedence"
 }
 
 test_validate_and_run
 test_status_surface
 test_external_skill_resolution
+test_legacy_skill_path_alias
+test_workflow_skill_path_precedence
 
 note ""
 note "Passed: ${PASS_COUNT}"

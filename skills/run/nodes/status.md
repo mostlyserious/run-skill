@@ -33,11 +33,11 @@ Assume the user may be seeing these artifacts for the first time. Explain the cu
 2. **Use the shared runner surface**:
    - One-shot summary:
      ```bash
-     run-skill --status <path-to-blueprint.json>
+     run-workflow --status <path-to-blueprint.json>
      ```
    - Live follow until terminal state:
      ```bash
-     run-skill --follow <path-to-blueprint.json>
+     run-workflow --follow <path-to-blueprint.json>
      ```
    - In Codex, use `--follow` from an attached shell session when you are actively supervising the run.
    - In Claude Code, use the same shell surface even if the UI also shows background activity.
