@@ -26,11 +26,11 @@ Assume the user may not know how `run` packages work yet. Briefly explain what i
 1. **Run the shared status surface first**:
    - One-shot summary:
      ```bash
-     run-skill --status <path-to-blueprint.json>
+     run-workflow --status <path-to-blueprint.json>
      ```
    - Live follow, when the user wants to stay attached until terminal state:
      ```bash
-     run-skill --follow <path-to-blueprint.json>
+     run-workflow --follow <path-to-blueprint.json>
      ```
    Use the shared surface as the source of truth instead of reconstructing status from `progress.md` by hand.
    If the run already terminated, also check `completion-summary.txt` in the run directory for the durable terminal report.
@@ -56,22 +56,22 @@ Assume the user may not know how `run` packages work yet. Briefly explain what i
 5. **Re-emit the launch package**:
    ```bash
    # Validate the updated package before launch
-   run-skill --validate <path>/blueprint.json
+   run-workflow --validate <path>/blueprint.json
 
    # Standard: run the approved plan and stop on failure or blocker
-   run-skill --launch-mode standard <path>/blueprint.json
+   run-workflow --launch-mode standard <path>/blueprint.json
 
    # Adaptive: fixed scope, bounded blocker removal, restart on disruption or timeout
-   run-skill --launch-mode adaptive <path>/blueprint.json
+   run-workflow --launch-mode adaptive <path>/blueprint.json
 
    # Expansion: adaptive behavior plus bounded step creation during execution
-   run-skill --launch-mode expansion <path>/blueprint.json
+   run-workflow --launch-mode expansion <path>/blueprint.json
 
    # Legacy supervised compatibility
-   run-skill --supervised <path>/blueprint.json
+   run-workflow --supervised <path>/blueprint.json
 
    # Watch mode
-   run-skill --watch <path>/blueprint.json
+   run-workflow --watch <path>/blueprint.json
    ```
 
    Use the launch-mode ladder as the preferred handoff. Treat `--supervised` as legacy compatibility.
@@ -86,7 +86,7 @@ Assume the user may not know how `run` packages work yet. Briefly explain what i
 
 7. **Re-attach to the shared supervision surface if needed**:
    ```bash
-   run-skill --follow <path-to-blueprint.json>
+   run-workflow --follow <path-to-blueprint.json>
    ```
 
 ---

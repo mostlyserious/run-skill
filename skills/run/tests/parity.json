@@ -50,7 +50,7 @@
         "nodes/blueprint-schema.md"
       ],
       "expected_output_shape": [
-        "status command points at run-skill",
+        "status command points at run-workflow",
         "artifact-backed summary",
         "blockers and next artifact surfaced",
         "completion summary and recap named for terminal runs"

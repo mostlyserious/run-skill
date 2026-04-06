@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# run engine — autonomous project execution engine
+# run workflow runner — autonomous project execution engine
 # Reads blueprint.json, routes each step to the right AI CLI tool,
 # tracks progress, and handles blockers.
 set -euo pipefail
@@ -8,9 +8,11 @@ set -euo pipefail
 # Config
 ##############################################################################
 VERSION="1.0.0"
+CANONICAL_RUNNER_CMD="run-workflow"
+LEGACY_RUNNER_ALIAS="run-skill"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-RUN_SKILL_ROOT="$REPO_ROOT"
+RUN_WORKFLOW_ROOT="$REPO_ROOT"
 LAST_BLUEPRINT_FILE="${HOME}/.run-runner-last-blueprint"
 LEGACY_LAST_BLUEPRINT_FILE="${HOME}/.loop-runner-last-blueprint"
 
@@ -68,10 +70,10 @@ RUNTIME_TOOL_NOTE=""
 ##############################################################################
 usage() {
   cat <<EOF
-run engine v${VERSION} — autonomous project execution engine
+run workflow runner v${VERSION} — autonomous project execution engine
 
 Usage:
-  $(basename "$0") [options] <blueprint.json>
+  ${CANONICAL_RUNNER_CMD} [options] <blueprint.json>
 
 Options:
   --status      Show a one-shot supervision summary from runner artifacts
@@ -92,17 +94,20 @@ Options:
   -h, --help    Show this help
 
 Examples:
-  $(basename "$0") ./runs/my-project/blueprint.json
-  $(basename "$0") --status ./runs/my-project/blueprint.json
-  $(basename "$0") --follow ./runs/my-project/blueprint.json
-  $(basename "$0") --validate ./runs/my-project/blueprint.json
-  $(basename "$0") --launch-mode standard ./runs/my-project/blueprint.json
-  $(basename "$0") --launch-mode adaptive ./runs/my-project/blueprint.json
-  $(basename "$0") --launch-mode expansion ./runs/my-project/blueprint.json
-  $(basename "$0") --codex-service-tier fast ./runs/my-project/blueprint.json
-  $(basename "$0") --watch ./runs/my-project/blueprint.json
-  $(basename "$0") --dry-run ./runs/my-project/blueprint.json
-  $(basename "$0") --supervised --resume-last
+  ${CANONICAL_RUNNER_CMD} ./runs/my-project/blueprint.json
+  ${CANONICAL_RUNNER_CMD} --status ./runs/my-project/blueprint.json
+  ${CANONICAL_RUNNER_CMD} --follow ./runs/my-project/blueprint.json
+  ${CANONICAL_RUNNER_CMD} --validate ./runs/my-project/blueprint.json
+  ${CANONICAL_RUNNER_CMD} --launch-mode standard ./runs/my-project/blueprint.json
+  ${CANONICAL_RUNNER_CMD} --launch-mode adaptive ./runs/my-project/blueprint.json
+  ${CANONICAL_RUNNER_CMD} --launch-mode expansion ./runs/my-project/blueprint.json
+  ${CANONICAL_RUNNER_CMD} --codex-service-tier fast ./runs/my-project/blueprint.json
+  ${CANONICAL_RUNNER_CMD} --watch ./runs/my-project/blueprint.json
+  ${CANONICAL_RUNNER_CMD} --dry-run ./runs/my-project/blueprint.json
+  ${CANONICAL_RUNNER_CMD} --supervised --resume-last
+
+Compatibility:
+  ${LEGACY_RUNNER_ALIAS} remains supported as a legacy alias.
 
 The runner reads blueprint.json, finds the next eligible step (pending + all
 dependencies done), builds a prompt with project context and step detail,
@@ -1343,8 +1348,8 @@ display_path_for_review() {
   local path_value="$1"
   if [[ -n "$TARGET_REPO_ROOT" && "$path_value" == "${TARGET_REPO_ROOT}/"* ]]; then
     echo "${path_value#"${TARGET_REPO_ROOT}/"}"
-  elif [[ "$path_value" == "${RUN_SKILL_ROOT}/"* ]]; then
-    echo "${path_value#"${RUN_SKILL_ROOT}/"}"
+  elif [[ "$path_value" == "${RUN_WORKFLOW_ROOT}/"* ]]; then
+    echo "${path_value#"${RUN_WORKFLOW_ROOT}/"}"
   else
     echo "$path_value"
   fi
@@ -2726,11 +2731,12 @@ PY
 
 candidate_skill_roots() {
   local codex_home="${CODEX_HOME:-${HOME}/.codex}"
-  local -a roots=("${RUN_SKILL_ROOT}/skills")
-  if [[ -n "${RUN_SKILL_PATHS:-}" ]]; then
+  local -a roots=("${RUN_WORKFLOW_ROOT}/skills")
+  local extra_workflow_paths="${RUN_WORKFLOW_PATHS:-${RUN_SKILL_PATHS:-}}"
+  if [[ -n "${extra_workflow_paths}" ]]; then
     local IFS=':'
     local extra
-    for extra in $RUN_SKILL_PATHS; do
+    for extra in $extra_workflow_paths; do
       [[ -n "$extra" ]] && roots+=("$extra")
     done
   fi

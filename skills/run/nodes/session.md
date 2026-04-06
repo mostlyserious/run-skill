@@ -214,16 +214,16 @@ Write this layer for a general reader who is encountering the run for the first 
 
 ```bash
 # Validate the package before launch
-run-skill --validate <path>/blueprint.json
+run-workflow --validate <path>/blueprint.json
 
 # Standard: run the approved plan and stop on failure or blocker
-run-skill --launch-mode standard <path>/blueprint.json
+run-workflow --launch-mode standard <path>/blueprint.json
 
 # Adaptive: fixed scope, bounded blocker removal, restart on disruption or timeout
-run-skill --launch-mode adaptive <path>/blueprint.json
+run-workflow --launch-mode adaptive <path>/blueprint.json
 
 # Expansion: adaptive behavior plus bounded step creation during execution
-run-skill --launch-mode expansion <path>/blueprint.json
+run-workflow --launch-mode expansion <path>/blueprint.json
 ```
 
 Close with a plain-language explanation of which launch mode you recommend and why.

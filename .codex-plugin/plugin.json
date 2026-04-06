@@ -1,8 +1,8 @@
 {
-  "name": "run-skill",
+  "name": "run-workflow",
   "version": "1.0.0",
-  "description": "Portable run session planning and execution skill",
-  "homepage": "https://github.com/mostlyserious/run-skill",
+  "description": "Portable workflow runner for AI tools",
+  "homepage": "https://github.com/mostlyserious/run-workflow",
   "keywords": [
     "run",
     "planning",
@@ -15,17 +15,17 @@
     "name": "Mostly Serious",
     "url": "https://mostlyserious.io"
   },
-  "repository": "https://github.com/MostlySerious/run-skill",
+  "repository": "https://github.com/MostlySerious/run-workflow",
   "license": "MIT",
   "skills": "./skills/",
   "interface": {
-    "displayName": "Run Skill",
-    "shortDescription": "Plan and run multi-step project sessions",
-    "longDescription": "Portable run session planning and execution for Codex and Claude Code.",
+    "displayName": "Run Workflow",
+    "shortDescription": "Plan and run multi-step workflows",
+    "longDescription": "run is a portable workflow runner for AI tools, distributed as a skill for Codex and Claude Code.",
     "developerName": "Mostly Serious",
     "category": "Productivity",
     "capabilities": ["Interactive", "Write"],
-    "websiteURL": "https://github.com/MostlySerious/run-skill",
+    "websiteURL": "https://github.com/MostlySerious/run-workflow",
     "privacyPolicyURL": "https://www.mostlyserious.io/privacy-policy",
     "termsOfServiceURL": "https://www.mostlyserious.io/terms-of-use",
     "defaultPrompt": [
